@@ -26,6 +26,15 @@ author:
 EXAMPLES = '''
 # Example command-line invocation
 ansible www.example.net -m facter
+
+# Example in playbook
+- name: execute facter
+  facter:
+  
+# Example running with argument
+- name: execute facter
+  facter:
+    argument: "-p system_uptime timezone is_virtual"
 '''
 import json
 
@@ -34,13 +43,17 @@ from ansible.module_utils.basic import AnsibleModule
 
 def main():
     module = AnsibleModule(
-        argument_spec=dict()
+        argument_spec=dict(
+           argument = dict(required=False, type='str')
+        )
     )
 
     facter_path = module.get_bin_path('facter', opt_dirs=['/opt/puppetlabs/bin'])
 
     cmd = [facter_path, "--json"]
-
+    if module.params['argument']:
+        cmd += [module.params['argument'].strip()]
+        
     rc, out, err = module.run_command(cmd, check_rc=True)
     module.exit_json(**json.loads(out))
 
